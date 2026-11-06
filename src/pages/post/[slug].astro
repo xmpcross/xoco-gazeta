@@ -1,0 +1,251 @@
+---
+import { getCollection, render } from "astro:content";
+import Avatar from "@/components/Avatar.astro";
+import Lightbox from "@/components/Lightbox.astro";
+import ShareCard from "@/components/ShareCard.astro";
+import PostCard from "@/components/PostCard.astro";
+import PostHero from "@/components/PostHero.astro";
+import SectionHeader from "@/components/SectionHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  getRelated,
+  postSlug,
+  tagSlug,
+  visiblePosts,
+  type Post,
+} from "@/lib/posts";
+import { siteConfig } from "@/config/site";
+
+export async function getStaticPaths() {
+  const allPosts = visiblePosts(await getCollection("posts"));
+  return allPosts.map((post) => ({
+    params: { slug: postSlug(post) },
+    props: { post, allPosts },
+  }));
+}
+
+interface Props {
+  post: Post;
+  allPosts: Post[];
+}
+
+const { post, allPosts } = Astro.props;
+const { Content } = await render(post);
+const related = getRelated(allPosts, post);
+const data = post.data;
+const slug = postSlug(post);
+const articleUrl = new URL(`/post/${slug}/`, siteConfig.siteUrl).toString();
+const imageUrl = data.cover.src.src;
+const absoluteImageUrl = new URL(imageUrl, siteConfig.siteUrl).toString();
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: data.title,
+  description: data.excerpt,
+  image: absoluteImageUrl,
+  datePublished: data.date.toISOString(),
+  dateModified: data.date.toISOString(),
+  author: {
+    "@type": "Person",
+    name: data.author.name,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: siteConfig.authorName,
+  },
+  mainEntityOfPage: articleUrl,
+};
+---
+
+<BaseLayout title={data.title} description={data.excerpt} image={absoluteImageUrl} type="article" structuredData={structuredData}>
+  <SiteHeader posts={allPosts} overlay={data.heroLayout === "immersive"} />
+  <main id="content">
+    <article class="pb-4">
+      <PostHero post={post} url={articleUrl} />
+
+      <div class="mx-auto mt-10 max-w-[calc(var(--layout-reading)+2.5rem)] px-5 md:mt-14">
+        <div>
+          <div class="article-body">
+            <Content />
+          </div>
+
+          {
+            data.tags.length > 0 && (
+              <nav aria-label="Story topics" class="mt-12">
+                <ul class="flex flex-wrap gap-2">
+                  {data.tags.map((tag) => (
+                    <li>
+                      <a href={`/tag/${tagSlug(tag)}/`} class="pill capitalize">
+                        {tag}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )
+          }
+
+          <div class="mt-10 flex items-center gap-4 border-y border-border py-6">
+            <Avatar name={data.author.name} size={64} />
+            <div>
+              <p class="font-display text-lg font-semibold leading-tight">{data.author.name}</p>
+              <p class="meta mt-1">{data.author.role}, {siteConfig.name}</p>
+            </div>
+          </div>
+
+          <div class="mt-10">
+            <ShareCard title={data.title} url={articleUrl} />
+          </div>
+        </div>
+      </div>
+    </article>
+
+    {
+      related.length > 0 && (
+        <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+          <SectionHeader title="Keep reading" category={data.category} linkLabel={`More ${data.category}`} />
+          <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {related.map((relatedPost) => <PostCard post={relatedPost} />)}
+          </div>
+        </section>
+      )
+    }
+  </main>
+  <SiteFooter />
+
+  <Lightbox />
+</BaseLayout>
+
+<style>
+  .article-body {
+    font-family: var(--font-display);
+    font-size: 1.1875rem;
+    line-height: 1.72;
+    color: color-mix(in oklch, var(--foreground) 92%, transparent);
+  }
+
+  .article-body :global(p) {
+    margin: 1.4rem 0;
+    text-wrap: pretty;
+  }
+
+  .article-body > :global(p:first-child) {
+    margin-top: 0;
+  }
+
+  .article-body > :global(p:first-child::first-letter) {
+    float: left;
+    margin: 0.38rem 0.6rem 0 0;
+    font-size: 4.1rem;
+    font-weight: 700;
+    line-height: 0.8;
+    color: var(--foreground);
+  }
+
+  .article-body :global(h2) {
+    margin: 3rem 0 1rem;
+    scroll-margin-top: 2rem;
+    font-size: clamp(1.6rem, 3vw, 1.95rem);
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--foreground);
+    text-wrap: balance;
+  }
+
+  .article-body :global(blockquote) {
+    margin: 2.5rem 0;
+    border-left: 3px solid var(--accent);
+    padding: 0.25rem 0 0.25rem 1.5rem;
+    font-size: clamp(1.45rem, 3vw, 1.75rem);
+    font-style: italic;
+    line-height: 1.35;
+    color: var(--foreground);
+    text-wrap: balance;
+  }
+
+  .article-body :global(blockquote p) {
+    margin: 0;
+  }
+
+  .article-body :global(blockquote p + p) {
+    margin-top: 0.85rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-style: normal;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  .article-body :global(ul),
+  .article-body :global(ol) {
+    margin: 1.4rem 0;
+    padding-left: 1.4rem;
+  }
+
+  .article-body :global(ul) {
+    list-style: disc;
+  }
+
+  .article-body :global(ol) {
+    list-style: decimal;
+  }
+
+  .article-body :global(li) {
+    margin: 0.5rem 0;
+    padding-left: 0.25rem;
+  }
+
+  .article-body :global(li::marker) {
+    color: var(--accent);
+  }
+
+  .article-body :global(a) {
+    color: var(--foreground);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .article-body :global(strong) {
+    font-weight: 650;
+    color: var(--foreground);
+  }
+
+  /* An image on its own line, followed by an italic line, reads as a figure and its caption. */
+  .article-body :global(p:has(> img:only-child)) {
+    margin: 2.5rem 0 0;
+  }
+
+  .article-body :global(p > img:only-child) {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-media);
+  }
+
+  .article-body :global(p:has(> img:only-child) + p:has(> em:only-child)) {
+    margin: 0.75rem 0 2.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  .article-body :global(p:has(> img:only-child) + p > em:only-child) {
+    font-style: normal;
+  }
+
+  @media (min-width: 1024px) {
+    .article-body :global(p:has(> img:only-child)) {
+      margin-right: -4rem;
+      margin-left: -4rem;
+    }
+
+    .article-body :global(p:has(> img:only-child) + p:has(> em:only-child)) {
+      margin-left: -4rem;
+    }
+  }
+</style>

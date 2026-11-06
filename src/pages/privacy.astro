@@ -1,0 +1,40 @@
+---
+import { getCollection } from "astro:content";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@/config/site";
+import { visiblePosts } from "@/lib/posts";
+
+const allPosts = visiblePosts(await getCollection("posts"));
+---
+
+<BaseLayout title="Privacy Policy" description={`Privacy policy for ${siteConfig.name}.`}>
+  <SiteHeader posts={allPosts} />
+  <main id="content">
+    <section class="mx-auto max-w-3xl px-5 pt-10 lg:pt-14">
+      <h1 class="headline text-[clamp(2.75rem,6vw,4.5rem)] leading-none">Privacy policy</h1>
+      <p class="mt-5 text-pretty font-display text-[1.25rem] leading-relaxed text-muted-foreground">
+        This page explains the types of information a publication may collect, how that information can be used, and how readers can get in touch about privacy requests.
+      </p>
+    </section>
+
+    <section class="mx-auto grid max-w-3xl gap-10 px-5 pt-12 text-muted-foreground">
+      <div>
+        <h2 class="headline text-[1.75rem] text-foreground">Information we collect</h2>
+        <p class="mt-3 leading-relaxed">The site may collect newsletter email addresses, contact messages, analytics events, and advertising-related data when those features are enabled.</p>
+      </div>
+
+      <div>
+        <h2 class="headline text-[1.75rem] text-foreground">How we use it</h2>
+        <p class="mt-3 leading-relaxed">Collected data may be used for publishing, responding to inquiries, sending email, measuring traffic, improving content, and complying with legal obligations.</p>
+      </div>
+
+      <div>
+        <h2 class="headline text-[1.75rem] text-foreground">Contact</h2>
+        <p class="mt-3 leading-relaxed">For privacy requests, contact <a class="text-foreground underline decoration-[var(--accent)] underline-offset-4" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>.</p>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>

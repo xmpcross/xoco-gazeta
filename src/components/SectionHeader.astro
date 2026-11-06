@@ -1,0 +1,29 @@
+---
+import { categorySlug, type Category } from "@/lib/posts";
+
+interface Props {
+  title: string;
+  /* Links the header to this section's archive. */
+  category?: Category;
+  href?: string;
+  linkLabel?: string;
+  id?: string;
+}
+
+const { title, category, linkLabel = "See all", id } = Astro.props;
+const href = Astro.props.href ?? (category ? `/category/${categorySlug(category)}/` : undefined);
+---
+
+<div class="mb-7 flex items-center justify-between gap-5" id={id}>
+  <h2 class="headline text-[1.75rem] leading-none md:text-[2rem]">{title}</h2>
+  {
+    href && (
+      <a href={href} class="pill group shrink-0">
+        {linkLabel}
+        <svg aria-hidden="true" class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </a>
+    )
+  }
+</div>

@@ -1,0 +1,131 @@
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+import Avatar from "@/components/Avatar.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@/config/site";
+import { categories, visiblePosts } from "@/lib/posts";
+import newsroom from "@/assets/pages/newsroom.jpg";
+
+const allPosts = visiblePosts(await getCollection("posts"));
+const masthead = Array.from(
+  allPosts
+    .reduce((authors, post) => {
+      const current = authors.get(post.data.author.name);
+      authors.set(post.data.author.name, {
+        ...post.data.author,
+        stories: (current?.stories ?? 0) + 1,
+      });
+      return authors;
+    }, new Map<string, { name: string; role: string; stories: number }>())
+    .values(),
+).sort((a, b) => a.name.localeCompare(b.name));
+const stats = [
+  { value: allPosts.length, label: "Stories published" },
+  { value: categories.length, label: "Sections" },
+  { value: masthead.length, label: "Reporters and editors" },
+];
+const principles = [
+  {
+    title: "Reported, not repeated",
+    text: "We go to the people closest to a story and say plainly where our information comes from.",
+  },
+  {
+    title: "Corrected in the open",
+    text: "When we get something wrong, we fix it on the story and say what changed.",
+  },
+  {
+    title: "Written to be finished",
+    text: "Clear, unhurried stories that respect a reader's time, with no autoplay and no clutter.",
+  },
+];
+---
+
+<BaseLayout title="About" description={`About ${siteConfig.name}: who we are, what we cover, and the editors behind the stories.`}>
+  <SiteHeader posts={allPosts} />
+  <main id="content">
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8 lg:pt-14">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
+        <h1 class="headline text-[clamp(2.75rem,6.5vw,5rem)] leading-[0.98]">News for people who read to the end.</h1>
+        <p class="text-pretty font-display text-[1.25rem] leading-relaxed text-muted-foreground lg:pb-2">
+          {siteConfig.name} covers the world as readers live it: the politics and markets that shape the week, the science and technology changing daily life, and the culture and sport people talk about.
+        </p>
+      </div>
+
+      <figure class="mt-10 md:mt-14">
+        <div class="media aspect-[16/10] md:aspect-[21/9]">
+          <Image
+            src={newsroom}
+            alt="An open-plan newsroom with reporters working at long desks under bright windows"
+            widths={[640, 960, 1200, 1600, 2000]}
+            sizes="(min-width: 1344px) 1280px, calc(100vw - 2.5rem)"
+            loading="eager"
+            fetchpriority="high"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <figcaption class="meta mt-3 text-right">
+          Photo:{" "}
+          <a href="https://unsplash.com/photos/people-working-at-desks-in-open-office-kN_kViDchA0" rel="noreferrer" class="story-link">
+            Arlington Research on Unsplash
+          </a>
+        </figcaption>
+      </figure>
+
+      <dl class="mt-12 grid gap-8 border-y border-border py-10 sm:grid-cols-3">
+        {
+          stats.map((stat) => (
+            <div class="flex flex-col-reverse gap-2 sm:items-center">
+              <dt class="meta">{stat.label}</dt>
+              <dd class="headline text-[3rem] leading-none text-accent">{stat.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8" aria-labelledby="principles-heading">
+      <h2 id="principles-heading" class="headline mb-8 text-[1.75rem] leading-none md:text-[2rem]">How we work</h2>
+      <ul class="grid gap-4 md:grid-cols-3">
+        {
+          principles.map((principle, index) => (
+            <li class="rounded-2xl bg-muted p-6 md:p-8">
+              <span class="font-display text-lg font-semibold text-accent">0{index + 1}</span>
+              <h3 class="headline mt-6 text-[1.4rem] leading-tight">{principle.title}</h3>
+              <p class="mt-2 text-pretty leading-relaxed text-muted-foreground">{principle.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    {
+      masthead.length > 0 && (
+        <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8" aria-labelledby="masthead-heading">
+          <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <h2 id="masthead-heading" class="headline text-[1.75rem] leading-none md:text-[2rem]">
+              The masthead
+            </h2>
+            <a href="/contact/" class="pill">
+              Contact the desk
+            </a>
+          </div>
+          <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {masthead.map((author) => (
+              <li class="flex items-center gap-4 rounded-2xl border border-border p-4">
+                <Avatar name={author.name} size={64} />
+                <div class="min-w-0">
+                  <p class="font-display text-lg font-semibold leading-tight">{author.name}</p>
+                  <p class="meta mt-1">{author.role}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </main>
+  <SiteFooter />
+</BaseLayout>

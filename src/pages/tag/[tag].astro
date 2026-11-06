@@ -1,0 +1,53 @@
+---
+import { getCollection } from "astro:content";
+import NewsletterSignup from "@/components/NewsletterSignup.astro";
+import PostCard from "@/components/PostCard.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@/config/site";
+import { getAllTags, tagSlug, visiblePosts, type Post } from "@/lib/posts";
+
+export async function getStaticPaths() {
+  const allPosts = visiblePosts(await getCollection("posts"));
+  return getAllTags(allPosts).map((tag) => ({
+    params: { tag: tagSlug(tag) },
+    props: { tag, allPosts },
+  }));
+}
+
+interface Props {
+  tag: string;
+  allPosts: Post[];
+}
+
+const { tag, allPosts } = Astro.props;
+const posts = visiblePosts(allPosts).filter((post) => post.data.tags.some((item) => tagSlug(item) === tagSlug(tag)));
+const title = `${tag} stories`;
+const description = `Stories about ${tag} on ${siteConfig.name}.`;
+---
+
+<BaseLayout title={title} description={description}>
+  <SiteHeader posts={allPosts} />
+  <main id="content">
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8 lg:pt-14">
+      <div class="border-b border-border pb-8">
+        <h1 class="headline text-[clamp(2.5rem,5.5vw,4rem)] capitalize leading-none">{tag}</h1>
+        <p class="mt-3 text-muted-foreground">
+          {posts.length} {posts.length === 1 ? "story" : "stories"} on this topic.
+        </p>
+      </div>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8">
+      <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post, index) => <PostCard post={post} eager={index < 3} />)}
+      </div>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+      <NewsletterSignup />
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>

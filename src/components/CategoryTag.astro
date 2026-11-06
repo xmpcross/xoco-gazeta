@@ -1,0 +1,19 @@
+---
+import { type Category } from "@/lib/posts";
+
+interface Props {
+  category: Category;
+  variant?: "text" | "pill";
+}
+
+const { category, variant = "text" } = Astro.props;
+---
+
+<span
+  class:list={[
+    "inline-flex items-center font-sans text-[0.8125rem] font-semibold leading-none text-accent",
+    variant === "pill" && "rounded-full bg-[var(--accent-wash)] px-2.5 py-1.5",
+  ]}
+>
+  {category}
+</span>

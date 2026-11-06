@@ -1,0 +1,83 @@
+---
+import { getCollection } from "astro:content";
+import NewsletterSignup from "@/components/NewsletterSignup.astro";
+import PostCard from "@/components/PostCard.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@/config/site";
+import { categories, categoryFromSlug, categorySlug, getByCategory, visiblePosts, type Category, type Post } from "@/lib/posts";
+
+export async function getStaticPaths() {
+  const allPosts = visiblePosts(await getCollection("posts"));
+  return categories.map((category) => ({
+    params: { category: categorySlug(category) },
+    props: { category, allPosts },
+  }));
+}
+
+interface Props {
+  category: Category;
+  allPosts: Post[];
+}
+
+const { category, allPosts } = Astro.props;
+const cat = categoryFromSlug(Astro.params.category ?? "") ?? category;
+const posts = getByCategory(allPosts, cat);
+const [lead, ...rest] = posts;
+const sideRail = visiblePosts(allPosts).filter((post) => post.data.category !== cat).slice(0, 5);
+const title = `${cat} news`;
+const description = `The latest ${cat.toLowerCase()} stories, features, and analysis from ${siteConfig.name}.`;
+---
+
+<BaseLayout title={title} description={description}>
+  <SiteHeader posts={allPosts} />
+  <main id="content">
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8 lg:pt-14">
+      <h1 class="headline text-[clamp(2.75rem,6vw,4.5rem)] leading-none">{cat}</h1>
+      <p class="mt-3 text-muted-foreground">
+        {posts.length} {posts.length === 1 ? "story" : "stories"}, newest first.
+      </p>
+      <nav class="mt-6 border-b border-border pb-6" aria-label="Sections">
+        <ul class="flex flex-wrap gap-2">
+          {
+            categories.map((item) => (
+              <li>
+                <a href={`/category/${categorySlug(item)}/`} class="pill" aria-current={item === cat ? "page" : undefined}>
+                  {item}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <div class="min-w-0">
+          {lead && <PostCard post={lead} variant="hero" eager hideCategory />}
+          {
+            rest.length > 0 && (
+              <div class="mt-12 grid gap-x-6 gap-y-10 border-t border-border pt-10 sm:grid-cols-2">
+                {rest.map((post) => <PostCard post={post} variant="lead" hideCategory />)}
+              </div>
+            )
+          }
+          {posts.length === 0 && <p class="text-muted-foreground">More stories are coming soon.</p>}
+        </div>
+        <aside aria-labelledby="elsewhere-heading" class="self-start lg:sticky lg:top-8 lg:border-l lg:border-border lg:pl-10">
+          <h2 id="elsewhere-heading" class="headline text-[1.5rem] leading-none">Elsewhere</h2>
+          <div class="mt-3 divide-y divide-border">
+            {sideRail.map((post) => <PostCard post={post} variant="horizontal" />)}
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+      <NewsletterSignup />
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>

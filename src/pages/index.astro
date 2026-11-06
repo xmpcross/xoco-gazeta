@@ -1,0 +1,130 @@
+---
+import { getCollection } from "astro:content";
+import NewsletterSignup from "@/components/NewsletterSignup.astro";
+import PostCard from "@/components/PostCard.astro";
+import SectionHeader from "@/components/SectionHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@/config/site";
+import { categorySlug, excludePosts, getByCategory, getTrending, visiblePosts, type Category } from "@/lib/posts";
+
+const allPosts = visiblePosts(await getCollection("posts"));
+const hero = allPosts[0];
+const rest = excludePosts(allPosts, hero ? [hero] : []);
+const topStories = getTrending(rest, 5);
+const frontRow = excludePosts(rest, topStories).slice(0, 4);
+const business = getByCategory(allPosts, "Business", 4);
+const [scienceLead, ...scienceRest] = getByCategory(allPosts, "Science", 4);
+const sport = getByCategory(allPosts, "Sport", 4);
+const culture = getByCategory(allPosts, "Culture", 4);
+const railCategories: Category[] = ["World", "Politics", "Technology"];
+const rails = railCategories
+  .map((category) => ({ category, posts: getByCategory(allPosts, category, 3) }))
+  .filter((rail) => rail.posts.length > 0);
+const latest = allPosts.slice(0, 8);
+---
+
+<BaseLayout>
+  <SiteHeader posts={allPosts} />
+  <main id="content">
+    <h1 class="sr-only">{siteConfig.name}: {siteConfig.tagline}</h1>
+
+    <section class="mx-auto layout-wide px-5 pt-8 lg:px-8 lg:pt-10">
+      <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12">
+        {hero && <PostCard post={hero} variant="hero" eager />}
+
+        <aside aria-labelledby="top-stories-heading" class="lg:border-l lg:border-border lg:pl-10">
+          <h2 id="top-stories-heading" class="headline text-[1.5rem] leading-none">Top stories</h2>
+          <div class="mt-3 divide-y divide-border">
+            {topStories.map((post, index) => <PostCard post={post} variant="horizontal" eager={index < 2} />)}
+          </div>
+        </aside>
+      </div>
+
+      <div class="mt-12 grid gap-x-6 gap-y-10 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4">
+        {frontRow.map((post) => <PostCard post={post} />)}
+      </div>
+    </section>
+
+    {
+      business.length > 0 && (
+        <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+          <hr class="mb-[var(--space-section)] border-border" />
+          <SectionHeader title="Business" category="Business" />
+          <div class="grid gap-x-10 gap-y-10 md:grid-cols-2">
+            {business.map((post) => <PostCard post={post} variant="split" hideCategory />)}
+          </div>
+        </section>
+      )
+    }
+
+    {
+      scienceLead && (
+        <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+          <hr class="mb-[var(--space-section)] border-border" />
+          <SectionHeader title="Science" category="Science" />
+          <PostCard post={scienceLead} variant="feature" hideCategory />
+          {scienceRest.length > 0 && (
+            <div class="mt-12 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {scienceRest.map((post) => <PostCard post={post} hideCategory />)}
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    {
+      sport.length > 0 && (
+        <section class="mt-[var(--space-section)] bg-[var(--night)] py-[var(--space-section)] text-[var(--night-foreground)]">
+          <div class="mx-auto layout-wide px-5 lg:px-8">
+            <div class="mb-7 flex items-center justify-between gap-5">
+              <h2 class="headline text-[1.75rem] leading-none md:text-[2rem]">Sport</h2>
+              <a href={`/category/${categorySlug("Sport")}/`} class="pill border-[var(--night-border)] text-[var(--night-foreground)] hover:border-[var(--night-foreground)]">
+                See all
+              </a>
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {sport.map((post) => <PostCard post={post} variant="overlay" hideCategory />)}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+      <SectionHeader title="Culture" category="Culture" />
+      <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {culture.map((post) => <PostCard post={post} hideCategory />)}
+      </div>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8" aria-label="More from the sections">
+      <hr class="mb-[var(--space-section)] border-border" />
+      <div class="grid gap-x-10 gap-y-12 md:grid-cols-3">
+        {
+          rails.map(({ category, posts }) => (
+            <div class="min-w-0">
+              <SectionHeader title={category} category={category} />
+              <div class="-mt-4 divide-y divide-border">
+                {posts.map((post) => <PostCard post={post} variant="compact" />)}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+      <NewsletterSignup />
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-[var(--space-section)] lg:px-8">
+      <SectionHeader title="Latest stories" href="/all-news/" linkLabel="All news" />
+      <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {latest.map((post) => <PostCard post={post} />)}
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>

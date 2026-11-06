@@ -1,0 +1,382 @@
+@import "tailwindcss";
+@source "../**/*.{astro,ts,md}";
+
+/* Source Serif 4 sets headlines and article copy, Geist the interface. Both SIL OFL 1.1; see public/fonts/. */
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("/fonts/source-serif-4/source-serif-4-latin.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("/fonts/source-serif-4/source-serif-4-latin-ext.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("/fonts/source-serif-4/source-serif-4-latin-italic.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("/fonts/source-serif-4/source-serif-4-latin-ext-italic.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist/geist-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist/geist-latin-ext.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --radius-media: var(--radius-media);
+}
+
+:root {
+  color-scheme: light;
+  --background: oklch(0.992 0.003 85);
+  --card: oklch(1 0 0);
+  --foreground: oklch(0.19 0.01 60);
+  --muted: oklch(0.955 0.006 85);
+  --muted-foreground: oklch(0.47 0.012 60);
+  --primary: oklch(0.19 0.01 60);
+  --primary-foreground: oklch(0.99 0.003 85);
+  --accent: oklch(0.52 0.19 27);
+  --accent-foreground: oklch(0.99 0 0);
+  --accent-wash: oklch(0.52 0.19 27 / 9%);
+  --border: oklch(0.9 0.006 85);
+  --border-strong: oklch(0.78 0.008 85);
+  --scrim: oklch(0.15 0.01 60 / 50%);
+  --night: oklch(0.2 0.01 60);
+  --night-foreground: oklch(0.97 0.004 85);
+  --night-muted: oklch(0.75 0.01 85);
+  --night-border: oklch(0.34 0.01 60);
+
+  --font-display: "Source Serif 4", "Iowan Old Style", Charter, Georgia, "Times New Roman", serif;
+  --font-sans:
+    Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
+    sans-serif;
+
+  --layout-wide: 84rem;
+  --layout-reading: 42rem;
+  --space-section: clamp(3.5rem, 6vw, 5.5rem);
+  --radius-media: 0.625rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.17 0.006 60);
+  --card: oklch(0.21 0.006 60);
+  --foreground: oklch(0.95 0.004 85);
+  --muted: oklch(0.25 0.006 60);
+  --muted-foreground: oklch(0.74 0.008 85);
+  --primary: oklch(0.95 0.004 85);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --accent: oklch(0.7 0.16 27);
+  --accent-foreground: oklch(0.15 0.01 27);
+  --accent-wash: oklch(0.7 0.16 27 / 14%);
+  --border: oklch(0.96 0 0 / 12%);
+  --border-strong: oklch(0.96 0 0 / 28%);
+  --scrim: oklch(0 0 0 / 65%);
+  --night: oklch(0.13 0.006 60);
+  --night-border: oklch(0.96 0 0 / 12%);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-width: 320px;
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+}
+
+@layer components {
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    transform: translateY(-150%);
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 0.7rem 1.1rem;
+    font-weight: 600;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
+  .layout-wide {
+    max-width: var(--layout-wide);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .headline {
+    font-family: var(--font-display);
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .meta {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .story-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0 1px;
+    transition: background-size 0.3s var(--ease-out);
+  }
+
+  .story-link:hover,
+  .story-link:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  .card-title {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0 1px;
+    transition: background-size 0.35s var(--ease-out);
+  }
+
+  .group:hover .card-title,
+  .group:focus-visible .card-title {
+    background-size: 100% 1px;
+  }
+
+  .media {
+    overflow: hidden;
+    border-radius: var(--radius-media);
+    background: var(--muted);
+  }
+
+  .media img {
+    transition: transform 0.7s var(--ease-out);
+  }
+
+  .group:hover .media img {
+    transform: scale(1.03);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--foreground);
+    white-space: nowrap;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  a.pill:hover,
+  button.pill:hover {
+    border-color: var(--foreground);
+  }
+
+  .pill[aria-current="page"] {
+    border-color: var(--foreground);
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  .pill-solid {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  a.pill-solid:hover,
+  button.pill-solid:hover {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .pill-lg {
+    min-height: 2.75rem;
+    padding: 0.55rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+
+  .icon-btn {
+    display: inline-grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.2s ease;
+  }
+
+  .icon-btn:hover {
+    background: var(--muted);
+  }
+
+  .avatar {
+    width: var(--size, 2.5rem);
+    height: var(--size, 2.5rem);
+    flex-shrink: 0;
+    border-radius: 999px;
+    object-fit: cover;
+    background: var(--muted);
+  }
+
+  .avatar--initial {
+    display: inline-grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+}
+
+.theme-icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-icon-sun {
+  display: block;
+}
+
+:root[data-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+
+html.has-open-menu,
+html.has-open-menu body,
+html.has-open-share {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

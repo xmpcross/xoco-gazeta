@@ -1,0 +1,79 @@
+---
+import { navigation, siteConfig } from "@/config/site";
+import LocalIcon from "@/components/LocalIcon.astro";
+
+const socialIconByLabel = {
+  Instagram: "instagram",
+  TikTok: "tiktok",
+  YouTube: "youtube",
+  RSS: "rss",
+} as const;
+
+const socials = siteConfig.socials.map((item) => ({
+  ...item,
+  icon: socialIconByLabel[item.label as keyof typeof socialIconByLabel] ?? "link-45deg",
+}));
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-[var(--space-section)] border-t border-border">
+  <div class="mx-auto grid layout-wide gap-12 px-5 py-14 md:grid-cols-[1.6fr_1fr_1fr] lg:px-8">
+    <div>
+      <a href="/" class="inline-block font-display text-[2.25rem] font-extrabold leading-none tracking-[-0.03em]" aria-label={`${siteConfig.name} home`}>
+        {siteConfig.name}
+      </a>
+      <p class="mt-4 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">{siteConfig.description}</p>
+      <ul class="mt-6 flex flex-wrap gap-2">
+        {
+          socials.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="inline-grid h-10 w-10 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                aria-label={item.label === "RSS" ? "RSS feed" : `${siteConfig.name} on ${item.label}`}
+                rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+              >
+                <LocalIcon name={item.icon} className="h-4 w-4" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <nav aria-labelledby="footer-sections">
+      <h2 id="footer-sections" class="text-sm font-semibold">Sections</h2>
+      <ul class="mt-4 space-y-2.5 text-sm text-muted-foreground">
+        {
+          navigation.map((item) => (
+            <li>
+              <a href={item.href} class="story-link transition-colors hover:text-foreground">
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav aria-labelledby="footer-about">
+      <h2 id="footer-about" class="text-sm font-semibold">{siteConfig.name}</h2>
+      <ul class="mt-4 space-y-2.5 text-sm text-muted-foreground">
+        <li><a href="/all-news/" class="story-link transition-colors hover:text-foreground">All news</a></li>
+        <li><a href="/about/" class="story-link transition-colors hover:text-foreground">About</a></li>
+        <li><a href="/contact/" class="story-link transition-colors hover:text-foreground">Contact</a></li>
+        <li><a href="/#newsletter" class="story-link transition-colors hover:text-foreground">Newsletter</a></li>
+        <li><a href="/privacy/" class="story-link transition-colors hover:text-foreground">Privacy</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="border-t border-border">
+    <div class="mx-auto flex layout-wide flex-col justify-between gap-2 px-5 py-6 text-[0.8125rem] text-muted-foreground sm:flex-row lg:px-8">
+      <p>&copy; {year} {siteConfig.name}. All rights reserved.</p>
+      <p>
+        Built with <a href="https://astro.build/" class="story-link text-foreground" rel="noreferrer">Astro</a>
+      </p>
+    </div>
+  </div>
+</footer>

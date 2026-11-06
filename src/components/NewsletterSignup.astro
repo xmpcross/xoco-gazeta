@@ -1,0 +1,44 @@
+---
+import { siteConfig } from "@/config/site";
+
+const newsletter = siteConfig.newsletter;
+const action = newsletter.action || undefined;
+const method = newsletter.method || "post";
+const emailFieldName = newsletter.emailFieldName || "email";
+---
+
+<section
+  id="newsletter"
+  aria-labelledby="newsletter-title"
+  class="scroll-mt-8 rounded-3xl bg-[var(--night)] px-6 py-10 text-[var(--night-foreground)] md:px-12 md:py-14"
+>
+  <div class="grid gap-8 md:grid-cols-[1fr_minmax(0,26rem)] md:items-center md:gap-14">
+    <div>
+      <h2 id="newsletter-title" class="headline text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.08]">
+        {newsletter.title}
+      </h2>
+      <p class="mt-3 max-w-lg text-pretty text-[var(--night-muted)]">{newsletter.description}</p>
+    </div>
+    <form class="grid gap-3" action={action} method={method}>
+      <label class="sr-only" for="newsletter-email">Email address</label>
+      <div class="flex flex-col gap-2 sm:flex-row sm:rounded-full sm:bg-white/10 sm:p-1.5">
+        <input
+          id="newsletter-email"
+          required
+          type="email"
+          name={emailFieldName}
+          autocomplete="email"
+          placeholder="you@example.com"
+          class="min-h-12 min-w-0 flex-1 rounded-full bg-white/10 px-5 text-base text-white outline-none placeholder:text-white/55 focus-visible:ring-2 focus-visible:ring-white/60 sm:bg-transparent"
+        />
+        <button
+          type="submit"
+          class="min-h-12 rounded-full bg-white px-6 text-sm font-semibold text-[oklch(0.19_0.01_60)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+        >
+          Subscribe
+        </button>
+      </div>
+      <p class="px-1 text-xs text-[var(--night-muted)]">Free. Unsubscribe any time.</p>
+    </form>
+  </div>
+</section>

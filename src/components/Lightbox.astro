@@ -1,0 +1,147 @@
+---
+/* Opens the cover and in-article photos full size. Click anywhere, press Esc, or use the close button to dismiss. */
+---
+
+<dialog class="lightbox" aria-label="Enlarged photo" data-lightbox>
+  <button type="button" class="lightbox__close" aria-label="Close photo" data-lightbox-close>
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+    </svg>
+  </button>
+  <img class="lightbox__image" alt="" decoding="async" data-lightbox-image />
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>("[data-lightbox]");
+  const view = dialog?.querySelector<HTMLImageElement>("[data-lightbox-image]");
+
+  /* The widest candidate in srcset, so the enlarged photo is never a blown-up thumbnail. */
+  const largestSource = (image: HTMLImageElement) => {
+    const candidates = (image.getAttribute("srcset") ?? "")
+      .split(",")
+      .map((entry) => entry.trim().split(/\s+/))
+      .filter(([url]) => url)
+      .map(([url, size = "0w"]) => ({ url, width: Number.parseFloat(size) || 0 }));
+    candidates.sort((a, b) => b.width - a.width);
+    return candidates[0]?.url ?? image.currentSrc ?? image.src;
+  };
+
+  if (dialog && view && typeof dialog.showModal === "function") {
+    const root = document.documentElement;
+    let opener: HTMLElement | null = null;
+
+    const open = (image: HTMLImageElement) => {
+      opener = image;
+      view.src = largestSource(image);
+      view.alt = image.alt;
+      dialog.showModal();
+      root.classList.add("has-open-lightbox");
+    };
+
+    document.querySelectorAll<HTMLImageElement>("[data-zoomable], .article-body img").forEach((image) => {
+      image.classList.add("is-zoomable");
+      image.tabIndex = 0;
+      image.setAttribute("role", "button");
+      image.setAttribute("aria-label", image.alt ? `Enlarge photo: ${image.alt}` : "Enlarge photo");
+      image.addEventListener("click", () => open(image));
+      image.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        open(image);
+      });
+    });
+
+    dialog.addEventListener("click", () => dialog.close());
+
+    dialog.addEventListener("close", () => {
+      root.classList.remove("has-open-lightbox");
+      view.removeAttribute("src");
+      opener?.focus({ preventScroll: true });
+      opener = null;
+    });
+  }
+</script>
+
+<style>
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    padding: clamp(1rem, 4vw, 3rem);
+    cursor: zoom-out;
+  }
+
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .lightbox::backdrop {
+    background: oklch(0.12 0.005 60 / 97%);
+  }
+
+  .lightbox__image {
+    max-width: 100%;
+    max-height: calc(100dvh - 2 * clamp(1rem, 4vw, 3rem));
+    width: auto;
+    height: auto;
+    border-radius: 0.375rem;
+    object-fit: contain;
+  }
+
+  .lightbox[open] .lightbox__image {
+    animation: lightbox-in 0.35s var(--ease-out);
+  }
+
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  .lightbox__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: oklch(1 0 0 / 85%);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+
+  .lightbox__close:hover {
+    color: oklch(1 0 0);
+  }
+
+  .lightbox__close svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .lightbox__close:focus-visible {
+    outline-color: oklch(1 0 0);
+    outline-offset: -4px;
+  }
+
+  :global(.is-zoomable) {
+    cursor: zoom-in;
+  }
+
+  :global(html.has-open-lightbox) {
+    overflow: hidden;
+  }
+</style>

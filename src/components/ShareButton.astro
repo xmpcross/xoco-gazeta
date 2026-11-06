@@ -1,0 +1,52 @@
+---
+import LocalIcon from "@/components/LocalIcon.astro";
+
+/* Opens the page's ShareSheet; touch devices get their own native share sheet instead. */
+interface Props {
+  title: string;
+  /* Absolute URL of the page being shared. */
+  url: string;
+  label?: string;
+  class?: string;
+}
+
+const { title, url, label = "Share", class: className } = Astro.props;
+---
+
+<button
+  type="button"
+  aria-haspopup="dialog"
+  hidden
+  class:list={["pill", className]}
+  data-share-open
+  data-share-title={title}
+  data-share-url={url}
+>
+  <LocalIcon name="share" className="h-3.5 w-3.5" />
+  <span>{label}</span>
+</button>
+
+<script>
+  /* `canShare` rather than `share` alone: some desktop browsers expose `share` and reject every call. */
+  document.querySelectorAll<HTMLButtonElement>("[data-share-open]").forEach((button) => {
+    button.addEventListener(
+      "click",
+      async (event) => {
+        const data = {
+          title: button.dataset.shareTitle ?? document.title,
+          url: button.dataset.shareUrl ?? window.location.href,
+        };
+
+        if (!window.matchMedia("(pointer: coarse)").matches || !navigator.canShare?.(data)) return;
+
+        event.stopImmediatePropagation();
+        try {
+          await navigator.share(data);
+        } catch {
+          // Dismissed by the reader.
+        }
+      },
+      { capture: true },
+    );
+  });
+</script>

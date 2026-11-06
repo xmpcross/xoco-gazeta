@@ -1,0 +1,16 @@
+---
+import { siteConfig } from "@/config/site";
+
+interface Props {
+  label?: string;
+}
+
+const { label = siteConfig.adLabel } = Astro.props;
+---
+
+<aside class="grid min-h-48 place-items-center rounded-2xl border border-dashed border-border bg-muted/50 p-6 text-center">
+  <div>
+    <p class="text-xs font-medium text-muted-foreground">Advertisement</p>
+    <p class="headline mt-2 text-2xl">{label}</p>
+  </div>
+</aside>

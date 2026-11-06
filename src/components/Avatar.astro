@@ -1,0 +1,35 @@
+---
+import { Image } from "astro:assets";
+import { authorAvatar } from "@/lib/posts";
+
+interface Props {
+  name: string;
+  /* Rendered size in pixels. */
+  size?: number;
+  class?: string;
+  loading?: "eager" | "lazy";
+}
+
+const { name, size = 40, class: className, loading = "lazy" } = Astro.props;
+const photo = authorAvatar(name);
+---
+
+{
+  photo ? (
+    <Image
+      src={photo}
+      alt=""
+      width={size}
+      height={size}
+      densities={[1, 2]}
+      loading={loading}
+      decoding="async"
+      class:list={["avatar", className]}
+      style={`--size: ${size}px`}
+    />
+  ) : (
+    <span class:list={["avatar avatar--initial", className]} style={`--size: ${size}px`} aria-hidden="true">
+      {name.charAt(0)}
+    </span>
+  )
+}

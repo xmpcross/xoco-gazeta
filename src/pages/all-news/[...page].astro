@@ -1,0 +1,87 @@
+---
+import { getCollection } from "astro:content";
+import PostCard from "@/components/PostCard.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@/config/site";
+import { categories, categorySlug, visiblePosts, type Post } from "@/lib/posts";
+import type { GetStaticPaths, Page } from "astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = visiblePosts(await getCollection("posts"));
+  return paginate(posts, { pageSize: 12 });
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: Page<Post>;
+}
+
+const { page } = Astro.props;
+const allPosts = visiblePosts(await getCollection("posts"));
+const title = page.currentPage === 1 ? "All news" : `All news - Page ${page.currentPage}`;
+const description = `Every ${siteConfig.name} story, newest first: world news, politics, business, technology, science, culture, and sport.`;
+const withTrailingSlash = (url: string | undefined) => (url && !url.endsWith("/") ? `${url}/` : url);
+const prevUrl = withTrailingSlash(page.url.prev);
+const nextUrl = withTrailingSlash(page.url.next);
+---
+
+<BaseLayout title={title} description={description} prevUrl={prevUrl} nextUrl={nextUrl}>
+  <SiteHeader posts={allPosts} />
+  <main id="content">
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8 lg:pt-14">
+      <h1 class="headline text-[clamp(2.75rem,6vw,4.5rem)] leading-none">All news</h1>
+      <p class="mt-3 text-muted-foreground">
+        {page.total} stories, newest first.
+      </p>
+      <nav class="mt-6 border-b border-border pb-6" aria-label="Sections">
+        <ul class="flex flex-wrap gap-2">
+          {
+            categories.map((category) => (
+              <li>
+                <a href={`/category/${categorySlug(category)}/`} class="pill">
+                  {category}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </section>
+
+    <section class="mx-auto layout-wide px-5 pt-10 lg:px-8">
+      <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        {page.data.map((post, index) => <PostCard post={post} eager={page.currentPage === 1 && index < 3} />)}
+      </div>
+
+      {
+        page.lastPage > 1 && (
+          <nav class="mt-14 flex items-center justify-between gap-4 border-t border-border pt-6" aria-label="Pagination">
+            {page.url.prev ? (
+              <a href={prevUrl} class="pill pill-lg">
+                Newer
+              </a>
+            ) : (
+              <span class="pill pill-lg pointer-events-none opacity-40" aria-hidden="true">
+                Newer
+              </span>
+            )}
+            <span class="meta">
+              Page {page.currentPage} of {page.lastPage}
+            </span>
+            {page.url.next ? (
+              <a href={nextUrl} class="pill pill-lg">
+                Older
+              </a>
+            ) : (
+              <span class="pill pill-lg pointer-events-none opacity-40" aria-hidden="true">
+                Older
+              </span>
+            )}
+          </nav>
+        )
+      }
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>

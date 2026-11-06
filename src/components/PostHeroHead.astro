@@ -1,0 +1,59 @@
+---
+import Avatar from "@/components/Avatar.astro";
+import CategoryTag from "@/components/CategoryTag.astro";
+import ShareButton from "@/components/ShareButton.astro";
+import { categorySlug, formatDate, type Post } from "@/lib/posts";
+
+interface Props {
+  post: Post;
+  /* Absolute URL of the story, for the share button. */
+  url: string;
+  /* `light` sets white text for openings that sit on the photograph. */
+  tone?: "default" | "light";
+}
+
+const { post, url, tone = "default" } = Astro.props;
+const data = post.data;
+const light = tone === "light";
+---
+
+<div class:list={["text-center", light && "text-white"]}>
+  <a href={`/category/${categorySlug(data.category)}/`} class="inline-block transition-opacity hover:opacity-80">
+    {
+      light ? (
+        <span class="inline-flex rounded-full bg-white/15 px-2.5 py-1.5 text-[0.8125rem] font-semibold leading-none text-white backdrop-blur-sm">
+          {data.category}
+        </span>
+      ) : (
+        <CategoryTag category={data.category} variant="pill" />
+      )
+    }
+  </a>
+  <h1 class="headline mt-5 text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.04]">{data.title}</h1>
+  <p
+    class:list={[
+      "mx-auto mt-5 max-w-2xl text-pretty font-display text-[1.25rem] leading-relaxed md:text-[1.375rem]",
+      light ? "text-white/85" : "text-muted-foreground",
+    ]}
+  >
+    {data.excerpt}
+  </p>
+  <div class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+    <div class="flex items-center gap-3 text-left">
+      <Avatar name={data.author.name} size={44} loading="eager" />
+      <div class="text-sm leading-snug">
+        <p class="font-semibold">{data.author.name}</p>
+        <p class:list={["meta", light && "!text-white/75"]}>
+          <time datetime={data.date.toISOString()}>{formatDate(data.date, "long")}</time>
+          <span aria-hidden="true"> · </span>
+          {data.readMinutes} min read
+        </p>
+      </div>
+    </div>
+    <ShareButton
+      title={data.title}
+      url={url}
+      class={light ? "border-white/40 bg-white/10 text-white backdrop-blur-sm hover:border-white" : undefined}
+    />
+  </div>
+</div>

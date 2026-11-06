@@ -1,0 +1,292 @@
+---
+import LocalIcon, { type LocalIconName } from "@/components/LocalIcon.astro";
+
+/* One sheet per page, opened by any ShareButton. Every target is a plain link. */
+interface Props {
+  title: string;
+  /* Absolute URL of the page being shared. */
+  url: string;
+}
+
+const { title, url } = Astro.props;
+const link = encodeURIComponent(url);
+const text = encodeURIComponent(title);
+
+interface Target {
+  label: string;
+  icon: LocalIconName;
+  brand: string;
+  href: string;
+}
+
+const targets: Target[] = [
+  { label: "X", icon: "twitter-x", brand: "#0f0f0f", href: `https://x.com/intent/post?text=${text}&url=${link}` },
+  { label: "Facebook", icon: "facebook", brand: "#1877f2", href: `https://www.facebook.com/sharer/sharer.php?u=${link}` },
+  { label: "LinkedIn", icon: "linkedin", brand: "#0a66c2", href: `https://www.linkedin.com/sharing/share-offsite/?url=${link}` },
+  { label: "WhatsApp", icon: "whatsapp", brand: "#1eb355", href: `https://api.whatsapp.com/send?text=${text}%20${link}` },
+  { label: "Email", icon: "envelope", brand: "#c2413f", href: `mailto:?subject=${text}&body=${link}` },
+  { label: "Bluesky", icon: "bluesky", brand: "#1185fe", href: `https://bsky.app/intent/compose?text=${text}%20${link}` },
+  { label: "Threads", icon: "threads", brand: "#0f0f0f", href: `https://www.threads.net/intent/post?text=${text}%20${link}` },
+];
+
+const extraTargets: Target[] = [
+  { label: "Telegram", icon: "telegram", brand: "#2596d8", href: `https://t.me/share/url?url=${link}&text=${text}` },
+  { label: "Reddit", icon: "reddit", brand: "#e03d00", href: `https://www.reddit.com/submit?url=${link}&title=${text}` },
+  { label: "Pinterest", icon: "pinterest", brand: "#d5001f", href: `https://pinterest.com/pin/create/button/?url=${link}&description=${text}` },
+];
+---
+
+<dialog class="sheet" aria-labelledby="share-sheet-title" data-share-sheet>
+  <div class="sheet__panel">
+    <div class="flex items-center justify-between gap-4">
+      <h2 id="share-sheet-title" class="headline text-2xl">Share this story</h2>
+      <button type="button" class="icon-btn -mr-2" aria-label="Close sharing options" data-share-close>
+        <svg aria-hidden="true" class="h-[1.05rem] w-[1.05rem]" viewBox="0 0 24 24" fill="none">
+          <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </div>
+
+    <ul class="sheet__targets" role="list">
+      {
+        targets.map((target) => (
+          <li>
+            <a class="sheet__target" style={`--brand-mark: ${target.brand}`} href={target.href} target="_blank" rel="noopener noreferrer" data-share-target>
+              <span class="sheet__icon">
+                <LocalIcon name={target.icon} className="h-5 w-5" />
+              </span>
+              <span>{target.label}</span>
+            </a>
+          </li>
+        ))
+      }
+      <li data-share-more-item>
+        <button type="button" class="sheet__target sheet__target--quiet" data-share-more>
+          <span class="sheet__icon">
+            <LocalIcon name="three-dots" className="h-5 w-5" />
+          </span>
+          <span>More</span>
+        </button>
+      </li>
+      {
+        extraTargets.map((target) => (
+          <li hidden data-share-extra>
+            <a class="sheet__target" style={`--brand-mark: ${target.brand}`} href={target.href} target="_blank" rel="noopener noreferrer" data-share-target>
+              <span class="sheet__icon">
+                <LocalIcon name={target.icon} className="h-5 w-5" />
+              </span>
+              <span>{target.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-7 border-t border-border pt-5">
+      <label for="share-sheet-url" class="text-sm text-muted-foreground">Story link</label>
+      <div class="sheet__copy mt-2">
+        <input id="share-sheet-url" class="sheet__url" type="text" readonly value={url} data-share-url />
+        <button type="button" class="pill pill-solid shrink-0" data-share-copy>
+          <LocalIcon name="clipboard" className="h-3.5 w-3.5" />
+          <span aria-live="polite" data-share-copy-label>Copy</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const sheet = document.querySelector<HTMLDialogElement>("[data-share-sheet]");
+
+  if (sheet && typeof sheet.showModal === "function") {
+    const root = document.documentElement;
+    let opener: HTMLElement | null = null;
+    const close = () => {
+      if (sheet.open) sheet.close();
+    };
+
+    document.querySelectorAll<HTMLElement>("[data-share-card]").forEach((card) => {
+      card.hidden = false;
+    });
+
+    document.querySelectorAll<HTMLButtonElement>("[data-share-open]").forEach((button) => {
+      button.hidden = false;
+      button.addEventListener("click", () => {
+        opener = button;
+        if (!sheet.open) sheet.showModal();
+        root.classList.add("has-open-share");
+      });
+    });
+
+    sheet.addEventListener("close", () => {
+      root.classList.remove("has-open-share");
+      opener?.focus({ preventScroll: true });
+      opener = null;
+    });
+
+    // The panel covers the rest of the dialog, so a click on the dialog itself is the backdrop.
+    sheet.addEventListener("click", (event) => {
+      if (event.target === sheet) close();
+    });
+
+    sheet.querySelectorAll("[data-share-close], [data-share-target]").forEach((element) => {
+      element.addEventListener("click", close);
+    });
+
+    sheet.querySelector("[data-share-more]")?.addEventListener("click", () => {
+      sheet.querySelectorAll<HTMLElement>("[data-share-extra]").forEach((item) => {
+        item.hidden = false;
+      });
+      const more = sheet.querySelector<HTMLElement>("[data-share-more-item]");
+      if (more) more.hidden = true;
+      sheet.querySelector<HTMLElement>("[data-share-extra] a")?.focus();
+    });
+
+    const copy = sheet.querySelector<HTMLButtonElement>("[data-share-copy]");
+    const label = sheet.querySelector<HTMLElement>("[data-share-copy-label]");
+    const field = sheet.querySelector<HTMLInputElement>("[data-share-url]");
+    let restore: number | undefined;
+
+    copy?.addEventListener("click", async () => {
+      if (!field || !label) return;
+      let message = "Copied";
+      try {
+        if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+        await navigator.clipboard.writeText(field.value);
+      } catch {
+        field.select();
+        message = "Press Ctrl+C";
+      }
+      label.textContent = message;
+      window.clearTimeout(restore);
+      restore = window.setTimeout(() => {
+        label.textContent = "Copy";
+      }, 2400);
+    });
+  }
+</script>
+
+<style>
+  .sheet {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    place-items: center;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--foreground);
+    padding: 1.25rem;
+  }
+
+  .sheet:not([open]) {
+    display: none;
+  }
+
+  .sheet::backdrop {
+    background: var(--scrim);
+    backdrop-filter: blur(3px);
+  }
+
+  .sheet__panel {
+    width: 100%;
+    max-width: 27rem;
+    max-height: calc(100dvh - 2.5rem);
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    background: var(--card);
+    padding: clamp(1.5rem, 4vw, 2rem);
+    box-shadow: 0 30px 80px -20px oklch(0 0 0 / 35%);
+  }
+
+  .sheet[open] .sheet__panel {
+    animation: sheet-in 0.4s var(--ease-out);
+  }
+
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+  }
+
+  .sheet__targets {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.1rem 0.5rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sheet__targets li[hidden] {
+    display: none;
+  }
+
+  .sheet__target {
+    display: grid;
+    width: 100%;
+    justify-items: center;
+    gap: 0.5rem;
+    border: 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    font-size: 0.8125rem;
+    text-align: center;
+    transition: color 0.2s ease;
+  }
+
+  .sheet__target:hover,
+  .sheet__target:focus-visible {
+    color: var(--foreground);
+  }
+
+  .sheet__icon {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--brand-mark);
+    color: #fff;
+    transition: transform 0.3s var(--ease-out);
+  }
+
+  .sheet__target--quiet .sheet__icon {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+
+  .sheet__target:hover .sheet__icon {
+    transform: translateY(-2px);
+  }
+
+  .sheet__copy {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--background);
+    padding: 0.3rem;
+  }
+
+  .sheet__url {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    outline: none;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+</style>
